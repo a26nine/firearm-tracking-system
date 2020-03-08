@@ -1,0 +1,120 @@
+namespace org.gov.fts
+
+enum LicenseType {
+  o Manufacturer
+  o Vendor
+  o Possessor 
+}
+
+enum LicenseStatus {
+  o Active
+  o Inactive // Includes both revoked and expired license
+}
+
+asset License identified by licenseNumber {
+  o String licenseNumber
+  o LicenseType licenseType
+  o LicenseStatus licenseStatus
+}
+
+enum FirearmStatus {
+  o Manufactured
+  o Forwarded
+  o Sold
+  o Returned 
+  o Destroyed
+}
+
+enum FirearmType {
+  o Revolver
+  o Pistol
+  o SemiAutomatic
+  o Automatic
+}
+
+asset Firearm identified by serialNumber{
+  o String serialNumber
+  o FirearmType firearmType
+  o FirearmStatus firearmStatus default="Manufactured"
+  --> Manufacturer manufacturedBy
+  --> Vendor soldBy optional
+  --> Possessor possessedBy optional
+}
+
+concept Address {
+  o String line1
+  o String line2
+  o String city
+  o String country
+  o String postalCode optional
+}
+  
+abstract participant User {
+  --> License license
+  o Address address
+  o String contactNumber optional
+}
+
+participant Manufacturer identified by manufacturerID extends User {
+  o String manufacturerID
+  o String manufacturerName
+}
+
+participant Vendor identified by vendorID extends User {
+  o String vendorID
+  o String vendorName
+}
+
+participant Possessor identified by posessorID extends User {
+  o String posessorID
+  o String firstName
+  o String LastName
+  o DateTime dateOfBirth optional
+  o Boolean medicalReport // Keeps a record of whether the medical report of the possessor is verified or not
+  o Boolean criminalConvictions // Keeps a record if the possessor was involved in criminal convictions during past
+  o String profileNotes optional // Optional field to store information related to the possessor, for reference in future
+  o Firearm[] possessedFirearms // List of possessed firearms
+}
+  
+participant Government identified by departmentID {
+  o String departmentID
+  o String departmentName
+}
+  
+participant FirearmControlUnit identified by FCUID {
+  o String FCUID
+  o String accessTo optional // For special access
+}
+  
+transaction IssueLicense {
+  o String licenseNumber
+  o String licenseType
+}
+  
+transaction RevokeLicense {
+  --> License licenseNumber
+}
+  
+transaction ManufactureFirearm {
+  o String serialNumber
+  o FirearmType firearmType
+  --> Manufacturer manufacturedBy
+}
+  
+transaction ForwardFirearm {
+  --> Firearm firearm
+  --> Vendor soldBy
+}
+  
+transaction SellFirearm {
+  --> Firearm firearm
+  --> Possessor possessedBy
+}
+  
+transaction ReturnFirearm {
+  --> Firearm firearm
+}
+  
+transaction DestroyFirearm {
+  --> Firearm firearm
+}
