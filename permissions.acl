@@ -1,0 +1,188 @@
+// Restrictions on the firearm control unit
+
+rule FCUDenyFirearmTransactions {
+  description: "Deny firearm transaction rights to the firearm control unit"
+  participant: "org.gov.fts.FirearmControlUnit"
+  operation: CREATE, UPDATE
+  resource: "org.gov.fts.Firearm"
+  action: DENY
+}
+
+// Remaining unrestricted access for the firearm control unit
+
+rule FCUAllAccess{
+  description: "Full access for the firearm control unit to manage the system"
+  participant: "org.gov.fts.FirearmControlUnit"
+  operation: ALL
+  resource: "org.gov.fts.*"
+  action: ALLOW
+}
+
+// View access for the government departments
+
+rule GovernmentReadAccess{
+  description: "View only access for the government departments to access data as per the need"
+  participant: "org.gov.fts.Government"
+  operation: READ
+  resource: "org.gov.fts.*"
+  action: ALLOW
+}
+
+// View self data
+
+rule SelfLicenseRead{
+  description: "All the participants in the system can view their individual license data"
+  participant(p): "org.gov.fts.User"
+  operation: READ
+  resource(r): "org.gov.fts.License"
+  condition: (p.license.getIdentifier()==r.getIdentifier())
+  action: ALLOW
+}
+
+rule SelfProfileRead{
+  description: "All the participants in the system can view their individual profile data"
+  participant(p): "org.gov.fts.User"
+  operation: READ
+  resource(r): "org.gov.fts.User"
+  condition: (p.getIdentifier()==r.getIdentifier())
+  action: ALLOW
+}
+
+// Manufacturer specific rules
+
+rule ManufactureReadVendor{
+  description: "Manufacturer can see the full list of vendors in the system"
+  participant: "org.gov.fts.Manufacturer"
+  operation: READ
+  resource: "org.gov.fts.Vendor"
+  action: ALLOW
+}
+
+rule ManufacturerReadPossessor{
+  description: "Manufacturer can see the full list of possessors in the system"
+  participant: "org.gov.fts.Manufacturer"
+  operation: READ
+  resource: "org.gov.fts.Possessor"
+  action: ALLOW
+}
+
+rule ManufacturerReadOwnPossession{
+  description: "Manufacturer can see the full list of firearms manufactured by themselves"
+  participant(p): "org.gov.fts.Manufacturer"
+  operation: READ
+  resource(r): "org.gov.fts.Firearm"
+  condition: (p.getIdentifier()==r.manufacturedBy.getIdentifier())
+  action: ALLOW
+}
+
+rule ManfuacturerCreateFirearm{
+  description: "Manufacturer can create a new firearm and update the existing ones"
+  participant: "org.gov.fts.Manufacturer"
+  operation: UPDATE, CREATE
+  resource: "org.gov.fts.Firearm"
+  action: ALLOW
+}
+
+rule ManufactureFirearmTx{
+  description: "Manufacturer can execute the ManufactureFirearm transaction"
+  participant: "org.gov.fts.Manufacturer"
+  operation: READ, UPDATE, CREATE
+  resource: "org.gov.fts.ManufactureFirearm"
+  action: ALLOW
+}
+
+rule ForwardFirearmTx{
+  description: "Manufacturer can execute the ForwardFirearm transaction"
+  participant: "org.gov.fts.Manufacturer"
+  operation: READ, UPDATE, CREATE
+  resource: "org.gov.fts.ForwardFirearm"
+  action: ALLOW
+}
+
+rule DestroyFirearmTx{
+  description: "Manufacturer can execute the DestroyFirearm transaction"
+  participant: "org.gov.fts.Manufacturer"
+  operation: READ, UPDATE, CREATE
+  resource: "org.gov.fts.DestroyFirearm"
+  action: ALLOW
+}
+
+// Vendor specific rules
+
+rule VendorReadPossessor{
+  description: "Vendor can see the full list of possessors in the system"
+  participant: "org.gov.fts.Vendor"
+  operation: READ
+  resource: "org.gov.fts.Possessor"
+  action: ALLOW
+}
+
+rule VendorReadOwnPossession{
+  description: "Vendor can see the full list of the firearms sold by them"
+  participant(p): "org.gov.fts.Vendor"
+  operation: READ
+  resource(r): "org.gov.fts.Firearm"
+  condition: (p.getIdentifier()==r.soldBy.getIdentifier())
+  action: ALLOW
+}
+
+rule VendorCreateFirearm{
+  description: "Vendor can update the existing firearms"
+  participant: "org.gov.fts.Vendor"
+  operation: UPDATE
+  resource: "org.gov.fts.Firearm"
+  action: ALLOW
+}
+
+rule SellFirearmTx{
+  description: "Vendor can execute the SellFirearm transaction"
+  participant: "org.gov.fts.Vendor"
+  operation: READ, UPDATE, CREATE
+  resource: "org.gov.fts.SellFirearm"
+  action: ALLOW
+}
+
+rule ReturnFirearmTx{
+  description: "Vendor can execute the ReturnFirearm transaction"
+  participant: "org.gov.fts.Vendor"
+  operation: READ, UPDATE, CREATE
+  resource: "org.gov.fts.ReturnFirearm"
+  action: ALLOW
+}
+
+// Possessor specific rules
+
+rule PossessorReadOwnPossession{
+  description: "Possessor can see the full list of firearms purchased by themselves"
+  participant(p): "org.gov.fts.Possessor"
+  operation: READ
+  resource(r): "org.gov.fts.Firearm"
+  condition: (p.getIdentifier()==r.possessedBy.getIdentifier())
+  action: ALLOW
+}
+
+// Default system rules
+
+rule SystemACL {
+    description:  "System ACL to permit all access"
+    participant: "org.hyperledger.composer.system.Participant"
+    operation: ALL
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}
+
+rule NetworkAdminUser {
+    description: "Grant business network administrators full access to user resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "**"
+    action: ALLOW
+}
+
+rule NetworkAdminSystem {
+    description: "Grant business network administrators full access to system resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}
